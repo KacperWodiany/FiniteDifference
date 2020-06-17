@@ -1,5 +1,6 @@
 import market
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class FiniteDifferenceGrid:
@@ -17,20 +18,28 @@ class FiniteDifferenceGrid:
                                                       self._time_step,
                                                       asset.volatility,
                                                       rf)
-        self._grid = np.array(
-            [[option.calculate_payoff(asset_step * i) for i in range(self._nas + 1)]])
+        self.grid = np.array(
+            [[option.calculate_payoff(asset_step * i) for i in range(self._nas + 1)]],
+            dtype=np.float64
+        )
 
     @staticmethod
     def _validate_input(asset_step, option):
         assert (option.strike / asset_step) % 1 == 0, 'Approximation of infinity must be a multiple of asset step'
 
+    def get_axes(self):
+        return np.array([
+            [self._time_step * k for k in range(self._nts + 1)],
+            [self._asset_step * i for i in range(self._nas + 1)]
+        ])
+
     def generate(self):
         while self._has_next():
-            self._grid = np.append(self._grid, self._next_step(), axis=0)
-        self._grid = np.flipud(self._grid)
+            self.grid = np.append(self.grid, self._next_step(), axis=0)
+        self.grid = np.flipud(self.grid)
 
     def _has_next(self):
-        return np.shape(self._grid)[0] < self._nts + 1
+        return np.shape(self.grid)[0] < self._nts + 1
 
     def _next_step(self):
         next_ = self._get_regular_points_from(self._get_current_step())
@@ -39,7 +48,7 @@ class FiniteDifferenceGrid:
         return [next_]
 
     def _get_current_step(self):
-        return self._grid[-1, :]
+        return self.grid[-1]
 
     def _get_regular_points_from(self, current):
         next_ = np.zeros_like(current)
@@ -48,7 +57,7 @@ class FiniteDifferenceGrid:
         return next_
 
     def _get_lower_bound(self):
-        return self._bond.discount(self._time_step, np.shape(self._grid)[0])
+        return self._bond.discount(self._time_step, np.shape(self.grid)[0])
 
     @staticmethod
     def _get_upper_bound(next_):
@@ -74,3 +83,22 @@ class GridConfigurator:
             [-((sigma * i) ** 2 + rf) * time_step for i in range(nas + 1)],
             [.5 * ((sigma * i) ** 2 + rf * i) * time_step for i in range(nas + 1)]
         ])
+
+
+class Plotter:
+
+    def __init__(self, values, axes):
+        self._values = values
+        self._x_axis = axes[0]
+        self._y_axis = axes[1]
+
+    def surface_plot(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x, y = np.meshgrid(self._x_axis, self._y_axis)
+        ax.plot_surface(x, y, self._values,
+                        cmap='coolwarm')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Asset')
+        ax.set_zlabel('Option Price')
+        plt.show()
