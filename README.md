@@ -9,7 +9,7 @@ To create custom option use Option class. Use Asset class to define an underlyin
 Invoke generate_grid() method, to generate grid of option prices. Grid is stored in object and can be accessed by get_grid(). 
 Due to stability reasons user cannot define his own time step. Setting asset step less than 10 can result in long generating time.
 
-Plotter provides easy way to plot surface of option values and prices at time 0.
+Plotter provides easy way to plot surfaces of option values and curves of prices at time 0.
 
 To get option value for time or asset price, that is not multiple of defined asset step, use Interpolator class. 
 It provides bilinear interpolation. Initializing with grid and scales of time and asset, one can get value at custom point, using value_at(x,y).
