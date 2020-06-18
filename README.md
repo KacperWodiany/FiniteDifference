@@ -12,7 +12,7 @@ Due to stability reasons user cannot define his own time step. Setting asset ste
 Plotter provides easy way to plot surfaces of option values and curves of prices at time 0.
 
 To get option value for time or asset price, that is not multiple of defined asset step, use Interpolator class. 
-It provides bilinear interpolation. Initializing with grid and scales of time and asset, one can get value at custom point, using value_at(x,y).
+It provides bilinear interpolation tool. Initializing with grid and scales of time and asset, one can get value at custom point, using value_at(x,y).
 Using Interpolator one can price options for whole paths.
 
 Simple CLI is also provided.
