@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 
 class BrownianMotion:
@@ -10,8 +11,8 @@ class BrownianMotion:
 
     @staticmethod
     def _validate_input(time_horizon, time_step):
-        # Simple time_horizon % time_step can return values considered as 0, but not == 0
-        assert (time_horizon / time_step) % 1 == 0, 'Time horizon must be a multiple of time step'
+        assert math.isclose(time_horizon % time_step, 0, abs_tol=1e-16), \
+            'Time horizon must be a multiple of time step'
 
     def generate(self):
         increments = np.random.normal(0,
