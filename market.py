@@ -3,13 +3,20 @@ import random_walk as rw
 
 class Option:
 
-    def __init__(self, expiration, strike, payoff):
+    def __init__(self, expiration, strike, payoff, lower_barrier=None, upper_barrier=None):
         self.expiration = expiration
         self.strike = strike
         self._payoff = payoff
+        self._lower_barrier = lower_barrier
+        self._upper_barrier = upper_barrier
 
     def calculate_payoff(self, asset_price):
-        return self._payoff(asset_price, self.strike)
+        if self._lower_barrier is not None and asset_price <= self._lower_barrier:
+            return 0
+        elif self._upper_barrier is not None and asset_price >= self._upper_barrier:
+            return 0
+        else:
+            return self._payoff(asset_price, self.strike)
 
 
 class Bond:
