@@ -7,13 +7,13 @@ class Option:
         self.expiration = expiration
         self.strike = strike
         self._payoff = payoff
-        self._lower_barrier = lower_barrier
-        self._upper_barrier = upper_barrier
+        self.lower_barrier = lower_barrier
+        self.upper_barrier = upper_barrier
 
     def calculate_payoff(self, asset_price):
-        if self._lower_barrier is not None and asset_price <= self._lower_barrier:
+        if self.lower_barrier is not None and asset_price <= self.lower_barrier:
             return 0
-        elif self._upper_barrier is not None and asset_price >= self._upper_barrier:
+        elif self.upper_barrier is not None and asset_price >= self.upper_barrier:
             return 0
         else:
             return self._payoff(asset_price, self.strike)

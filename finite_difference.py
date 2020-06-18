@@ -6,16 +6,18 @@ import math
 
 class FiniteDifference:
 
-    def __init__(self, option, asset, rf, asset_step, lower_barrier=None, upper_barrier=None, early_exercise=False):
-        self._validate_input(asset_step, option, lower_barrier, upper_barrier)
+    def __init__(self, option, asset, rf, asset_step, early_exercise=False):
+        self._validate_input(asset_step, option)
         self._nas = 2 * int(option.strike / asset_step)
         self._asset_step = asset_step
         self._nts = GridConfigurator.get_nts(asset.volatility,
                                              option.expiration,
                                              self._nas)
         self._time_step = option.expiration / self._nts
-        self._lower_barrier_step = int(lower_barrier / asset_step) if lower_barrier is not None else 0
-        self._upper_barrier_step = int(upper_barrier / asset_step) if upper_barrier is not None else self._nas
+        self._lower_barrier_step = \
+            int(option.lower_barrier / asset_step) if option.lower_barrier is not None else 0
+        self._upper_barrier_step = \
+            int(option.upper_barrier / asset_step) if option.upper_barrier is not None else self._nas
         self._early = early_exercise
         self._bond = market.Bond(option.calculate_payoff(0), rf)
         self._abc = GridConfigurator.get_coefficients(self._nas,
@@ -27,17 +29,15 @@ class FiniteDifference:
             dtype=np.float64
         )
 
-
-
     @staticmethod
-    def _validate_input(asset_step, option, lower_barrier, upper_barrier):
-        assert math.isclose(option.strike % asset_step, 0, abs_tol=1e-16),\
+    def _validate_input(asset_step, option):
+        assert math.isclose(option.strike % asset_step, 0, abs_tol=1e-16), \
             'Strike must be a multiple of asset step'
-        if lower_barrier is not None:
-            assert math.isclose(lower_barrier % asset_step, 0, abs_tol=1e-16),\
+        if option.lower_barrier is not None:
+            assert math.isclose(option.lower_barrier % asset_step, 0, abs_tol=1e-16), \
                 'Lower barrier must be a multiple of asset step'
-        if upper_barrier is not None:
-            assert math.isclose(upper_barrier % asset_step, 0, abs_tol=1e-16), \
+        if option.upper_barrier is not None:
+            assert math.isclose(option.upper_barrier % asset_step, 0, abs_tol=1e-16), \
                 'Lower barrier must be a multiple of asset step'
 
     def get_grid_axes(self):
@@ -54,7 +54,6 @@ class FiniteDifference:
             next_ = np.maximum(self._grid[0], self._next_step()) if self._early else self._next_step()
             self._grid = np.append(self._grid, next_, axis=0)
         self._grid = np.flipud(self._grid)
-        return self._grid
 
     def _has_next(self):
         return np.shape(self._grid)[0] < self._nts + 1
@@ -181,6 +180,7 @@ class Interpolator:
         reordered_areas = areas[[2, 3, 0, 1]]
         return np.sum(reordered_areas * values) / np.sum(reordered_areas)
 
+
 class Plotter:
 
     def __init__(self, values, x_axis, y_axis):
@@ -199,7 +199,7 @@ class Plotter:
         ax.set_zlabel('Option Price')
         plt.show()
 
-    def time_zero_price(self):
+    def time_zero(self):
         plt.plot(self._y_axis, self._values[0])
         plt.xlabel('Asset Price')
         plt.ylabel('Option Price')

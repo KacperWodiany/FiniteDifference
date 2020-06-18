@@ -11,9 +11,9 @@ def run(option_type, strike, expiration, volatility, rf,
     stock = market.Asset(0, volatility)
     option = market.Option(expiration, strike, payoffs[option_type],
                            upper_barrier=upper_bar, lower_barrier=lower_bar)
-    finite_diff = fd.FiniteDifference(option, stock, rf, ds, upper_barrier=upper_bar,
-                                      lower_barrier=lower_bar, early_exercise=early_ex)
-    grid = finite_diff.generate_grid()
+    finite_diff = fd.FiniteDifference(option, stock, rf, ds, early_exercise=early_ex)
+    finite_diff.generate_grid()
+    grid = finite_diff.get_grid()
     axes = finite_diff.get_grid_axes()
     plotter = fd.Plotter(grid, axes[0], axes[1])
 
@@ -21,27 +21,26 @@ def run(option_type, strike, expiration, volatility, rf,
         plotter.surface()
 
     if timezero:
-        plotter.time_zero_price()
+        plotter.time_zero()
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Pricing options with Explicit Finite Difference method.")
-    parser.add_argument('-type', '--option-type', type=int, metavar='', default=0,
+    parser = argparse.ArgumentParser(description="Pricing options with Explicit Finite Difference method")
+    parser.add_argument('-type', '--option-type', type=int, default=0,
                         help='Available options: 0-call, 1-put')
-    parser.add_argument('-s', '--strike', type=int, metavar='', required=True, help='Exercise price of an option')
-    parser.add_argument('-e', '--expiration', type=float, metavar='', default=1,
+    parser.add_argument('-s', '--strike', type=int, required=True, help='Exercise price of an option')
+    parser.add_argument('-e', '--expiration', type=float, default=1,
                         help='Expiration of an option (as a fraction of a year)')
-    parser.add_argument('-v', '--volatility', type=float, metavar='', required=True,
+    parser.add_argument('-v', '--volatility', type=float, required=True,
                         help='Volatility of an underlying asset')
-    # parser.add_argument('-m', '--drift', metavar='', help='Drift of an asset')
-    parser.add_argument('-rf', '--risk-free', type=float, metavar='', required=True, help='Risk free rate')
-    parser.add_argument('-dS', '--asset-step', type=int, metavar='', default=10,
+    parser.add_argument('-rf', '--risk-free', type=float, required=True, help='Risk free rate')
+    parser.add_argument('-dS', '--asset-step', type=int, default=10,
                         help='Asset step on Finite Difference grid. Small values (<10) can extend computation time')
-    parser.add_argument('-ex', '--early-exercise', type=bool, metavar='', default=False,
+    parser.add_argument('-ex', '--early-exercise', type=bool, default=False,
                         help='True if option can be exercised before maturity (American options)')
-    parser.add_argument('-lb', '--lower-barrier', type=int, default=None, metavar='',
+    parser.add_argument('-lb', '--lower-barrier', type=int, default=None,
                         help='Lower barrier level')
-    parser.add_argument('-ub', '--upper-barrier', type=int, default=None, metavar='',
+    parser.add_argument('-ub', '--upper-barrier', type=int, default=None,
                         help='Upper barrier level')
     parser.add_argument('--surface', help='Plot 3D option price surface', action='store_true')
     parser.add_argument('--timezero', help='Plot asset price vs option price at time 0', action='store_true')
