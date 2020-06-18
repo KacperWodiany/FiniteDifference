@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import math
 
 
-class FiniteDifferenceGrid:
+class FiniteDifference:
 
     def __init__(self, option, asset, rf, asset_step):
         self._validate_input(asset_step, option)
@@ -29,16 +29,20 @@ class FiniteDifferenceGrid:
         assert math.isclose(option.strike % asset_step, 0, abs_tol=1e-16),\
             'Approximation of infinity must be a multiple of asset step'
 
-    def get_axes(self):
+    def get_grid_axes(self):
         return np.array([
             self._time_step * np.arange(0, self._nts + 1),
             self._asset_step * np.arange(0, self._nas + 1)
         ])
 
-    def generate(self):
+    def get_grid(self):
+        return self.grid
+
+    def generate_grid(self):
         while self._has_next():
             self.grid = np.append(self.grid, self._next_step(), axis=0)
         self.grid = np.flipud(self.grid)
+        return self.grid
 
     def _has_next(self):
         return np.shape(self.grid)[0] < self._nts + 1
@@ -86,25 +90,6 @@ class GridConfigurator:
             -((sigma * i) ** 2 + rf) * time_step,
             .5 * ((sigma * i) ** 2 + rf * i) * time_step
         ])
-
-
-class Plotter:
-
-    def __init__(self, values, x_axis, y_axis):
-        self._values = values
-        self._x_axis = x_axis
-        self._y_axis = y_axis
-
-    def surface_plot(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        x, y = np.meshgrid(self._x_axis, self._y_axis)
-        ax.plot_surface(x, y, self._values,
-                        cmap='coolwarm')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Asset')
-        ax.set_zlabel('Option Price')
-        plt.show()
 
 
 class Interpolator:
@@ -174,3 +159,29 @@ class Interpolator:
     def _interpolate(areas, values):
         reordered_areas = areas[[2, 3, 0, 1]]
         return np.sum(reordered_areas * values) / np.sum(reordered_areas)
+
+class Plotter:
+
+    def __init__(self, values, x_axis, y_axis):
+        self._values = values
+        self._x_axis = x_axis
+        self._y_axis = y_axis
+
+    def surface(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        x, y = np.meshgrid(self._x_axis, self._y_axis)
+        ax.plot_surface(x, y, self._values.transpose(),
+                        cmap='coolwarm')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('Asset')
+        ax.set_zlabel('Option Price')
+        plt.show()
+
+    def time_zero_price(self):
+        plt.plot(self._y_axis, self._values[0])
+        plt.xlabel('Asset Price')
+        plt.ylabel('Option Price')
+        plt.title('Asset Price vs Option Price at time 0')
+        plt.show()
+
