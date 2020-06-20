@@ -62,7 +62,7 @@ class FiniteDifference:
         next_ = self._get_regular_points_from(self._get_current_step())
         next_[0:self._lower_barrier_step + 1] = self._get_lower_bound()
         if not self._upper_barrier_step == self._nas:
-            next_[self._upper_barrier_step - 1:-1] = self._get_upper_bound(next_)
+            next_[self._upper_barrier_step - 1:-1] = np.repeat(0, self._nas - self._upper_barrier_step + 1)
             next_[-1] = 0
         else:
             next_[-1] = self._get_upper_bound(next_)
@@ -88,11 +88,9 @@ class FiniteDifference:
         else:
             return np.repeat(0, self._lower_barrier_step + 1)
 
-    def _get_upper_bound(self, next_):
-        if self._upper_barrier_step == self._nas:
-            return 2 * next_[-2] - next_[-3]
-        else:
-            return np.repeat(0, self._nas - self._upper_barrier_step + 1)
+    @staticmethod
+    def _get_upper_bound(next_):
+        return 2 * next_[-2] - next_[-3]
 
 
 class GridConfigurator:
